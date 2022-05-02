@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import javax.swing.table.AbstractTableModel;
 
-
+//create new class to extend multiple classes JFrame and MyModel
 public class MyModel extends AbstractTableModel {
 	
 	 
