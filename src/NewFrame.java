@@ -16,7 +16,7 @@ public class NewFrame extends JFrame {
     int id = -1;
     int number = -1;
     int hotelid=-1;
-    int resid=-1;
+    int resnum=-1;
     JPanel upPanel = new JPanel();
     JPanel midPanel = new JPanel();
     JPanel downPanel = new JPanel();
@@ -41,6 +41,10 @@ public class NewFrame extends JFrame {
     String[] item = {"Male", "Female"};
     JComboBox<String> sexCombo = new JComboBox<String>(item);
     JComboBox<String> personCombo=new JComboBox<String>();
+    JLabel roomstayL = new JLabel("Staying at room number:");
+    JComboBox<String> RoomStayCombo=new JComboBox<String>( );
+    JLabel hotelstayL = new JLabel("Staying at hotel:");
+    JComboBox<String> HotelStayCombo=new JComboBox<String>();
     //room
     JLabel occupantsL = new JLabel("Occupants");
     JLabel typeL = new JLabel("Type");
@@ -52,15 +56,21 @@ public class NewFrame extends JFrame {
     //JComboBox<String> BookedCombo = new JComboBox<String>(roombooked);
     String[] roomitemtype = {"Luxury", "Standard"};
     JComboBox<String> TypeCombo = new JComboBox<String>(roomitemtype);
-    JComboBox<String> resCombo=new JComboBox<String>();
+    //JComboBox<String> resCombo=new JComboBox<String>();
     JTextField rentT = new JTextField();
     JComboBox<String> RoomCombo=new JComboBox<String>();
+    JLabel occupantL = new JLabel("Staying at room:");
+    JComboBox<String> OccupantCombo=new JComboBox<String>( );
+    JLabel hotelroomL = new JLabel("Hotel:");
+    JComboBox<String> HotelRoomCombo=new JComboBox<String>();
     //room
     //hotel
+    JLabel hotelidL = new JLabel("Hotel Name:");
     JLabel addressL = new JLabel("Address");
     JLabel starsL = new JLabel("Stars");
     JLabel floorsL = new JLabel("Floors");
     JTextField addressT = new JTextField();
+    JTextField hotelidT = new JTextField();
     String[] stars = {"1", "2", "3", "4", "5"};
     JComboBox<String> StarsCombo = new JComboBox<String>(stars);
     JTextField floorsT = new JTextField();
@@ -122,7 +132,7 @@ public class NewFrame extends JFrame {
         tab.add(hotelP,"Hotel");
         tab.add(roomP,"Room");
         tab.add(reserveP,"Reservation");
-        upPanel.setLayout(new GridLayout(5, 2));
+        upPanel.setLayout(new GridLayout(7, 3));
         upPanel.add(fnameL);
         upPanel.add(fnameT);
         upPanel.add(lnameL);
@@ -133,9 +143,13 @@ public class NewFrame extends JFrame {
         upPanel.add(ageT);
         upPanel.add(salaryL);
         upPanel.add(salaryT);
+        upPanel.add(roomstayL);
+        upPanel.add(RoomStayCombo);
+        upPanel.add(hotelstayL);
+        upPanel.add(HotelStayCombo);
         personP.add(upPanel);
         //room
-        RoomUpPanel.setLayout(new GridLayout(5, 2));
+        RoomUpPanel.setLayout(new GridLayout(7, 3));
         RoomUpPanel.add(occupantsL);
         RoomUpPanel.add(occupantsT);
         RoomUpPanel.add(typeL);
@@ -144,12 +158,18 @@ public class NewFrame extends JFrame {
         RoomUpPanel.add(BookedCombo);
         RoomUpPanel.add(rentL);
         RoomUpPanel.add(rentT);
+        RoomUpPanel.add(occupantL);
+        RoomUpPanel.add(OccupantCombo);
+        RoomUpPanel.add(hotelroomL);
+        RoomUpPanel.add(HotelRoomCombo);
         roomP.add(RoomUpPanel);
         //room
         //hotel
-        HotelUpPanel.setLayout(new GridLayout(5, 2));
+        HotelUpPanel.setLayout(new GridLayout(1, 4));
+        HotelUpPanel.add(hotelidL);
+        HotelUpPanel.add(hotelidT);
         HotelUpPanel.add(addressL);
-        HotelUpPanel.add(addressT);
+        HotelUpPanel.add(addressT);;
         HotelUpPanel.add(starsL);
         HotelUpPanel.add(StarsCombo);
         HotelUpPanel.add(floorsL);
@@ -210,6 +230,13 @@ public class NewFrame extends JFrame {
         rtable.addMouseListener(new NewFrame.RoomMouseAction());
         refreshTable();
         refreshComboPerson();
+        refreshComboRoomStay();
+        refreshComboHotelStay();
+        refreshComboOccupant();
+        refreshComboHotelRoom();
+        refreshHotelCombo();
+        refreshNumberCombo();
+        refreshPersonCombo();
         RoomRefreshTable();
         //refreshComboBooked();
         RoomRefreshComboType();
@@ -280,10 +307,44 @@ public class NewFrame extends JFrame {
             e.printStackTrace();
         }
     }
+    public void refreshComboHotelStay(){
+        String sql="select id from hotel";
+        conn=DBConnection.getConnection();
+        String item="";
+        try {
+            state=conn.prepareStatement(sql);
+            result=state.executeQuery();
+            HotelStayCombo.removeAllItems();
+            while(result.next()){
+                item=result.getObject(1).toString();
+                HotelStayCombo.addItem(item);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public void refreshComboRoomStay(){
+        String sql="select number from room";
+        conn=DBConnection.getConnection();
+        String item="";
+        try {
+            state=conn.prepareStatement(sql);
+            result=state.executeQuery();
+            RoomStayCombo.removeAllItems();
+            while(result.next()){
+                item=result.getObject(1).toString();
+                RoomStayCombo.addItem(item);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
     public void clearForm() {
         fnameT.setText("");
         lnameT.setText("");
         sexCombo.setSelectedIndex(0);
+        RoomStayCombo.setSelectedIndex(0);
+        HotelStayCombo.setSelectedIndex(0);
         ageT.setText("");
         salaryT.setText("");
     }
@@ -292,7 +353,7 @@ public class NewFrame extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             conn = DBConnection.getConnection();
-            String sql = "Insert into person(fname,lname,sex,age,salary)" + "values(?,?,?,?,?)";
+            String sql = "Insert into person(fname,lname,sex,age,salary,hotel,room)" + "values(?,?,?,?,?,?,?)";
             try {
                 state = conn.prepareStatement(sql);
                 state.setString(1, fnameT.getText());
@@ -300,9 +361,13 @@ public class NewFrame extends JFrame {
                 state.setString(3, sexCombo.getSelectedItem().toString());
                 state.setInt(4, Integer.parseInt(ageT.getText()));
                 state.setFloat(5, Float.parseFloat(salaryT.getText()));
+                state.setString(6, HotelStayCombo.getSelectedItem().toString());
+                state.setString(7, RoomStayCombo.getSelectedItem().toString());
                 state.execute();
                 refreshTable();
                 refreshComboPerson();
+                refreshComboRoomStay();
+                refreshComboHotelStay();
                 clearForm();
             } catch (SQLException ex) {
                 ex.printStackTrace();
@@ -314,7 +379,7 @@ public class NewFrame extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             conn = DBConnection.getConnection();
-            String sql = "Update person set fname=?,lname=?,sexCombo=?,age=?,salary=?" + "where id=?";
+            String sql = "Update person set fname=?,lname=?,sexCombo=?,age=?,salary=?, room=?, hotel=?" + "where id=?";
             try {
                 state = conn.prepareStatement(sql);
                 state.setString(1, fnameT.getText());
@@ -323,6 +388,7 @@ public class NewFrame extends JFrame {
                 state.setInt(4, Integer.parseInt(ageT.getText()));
                 state.setFloat(5, Float.parseFloat(salaryT.getText()));
                 state.setInt(6, Integer.parseInt(table.getValueAt(table.getSelectedRow(), 0).toString()));
+
                 state.execute();
                 refreshTable();
                 clearForm();
@@ -347,6 +413,8 @@ public class NewFrame extends JFrame {
             }
             ageT.setText(table.getValueAt(row, 4).toString());
             salaryT.setText(table.getValueAt(row, 5).toString());
+            HotelStayCombo.setSelectedItem(table.getValueAt(row,6).toString());
+            RoomStayCombo.setSelectedItem(table.getValueAt(row,7).toString());
         }
 
         @Override
@@ -482,28 +550,65 @@ public class NewFrame extends JFrame {
             e.printStackTrace();
         }
     }
+    public void refreshComboOccupant(){
+        String sql="select id from person";
+        conn=DBConnection.getConnection();
+        String item="";
+        try {
+            state=conn.prepareStatement(sql);
+            result=state.executeQuery();
+            OccupantCombo.removeAllItems();
+            while(result.next()){
+                item=result.getObject(1).toString();
+                OccupantCombo.addItem(item);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public void refreshComboHotelRoom(){
+        String sql="select id from hotel";
+        conn=DBConnection.getConnection();
+        String item="";
+        try {
+            state=conn.prepareStatement(sql);
+            result=state.executeQuery();
+            HotelRoomCombo.removeAllItems();
+            while(result.next()){
+                item=result.getObject(1).toString();
+                HotelRoomCombo.addItem(item);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
     public void RoomClearForm() {
         occupantsT.setText("");
         TypeCombo.setSelectedIndex(0);
         BookedCombo.setSelectedIndex(0);
         rentT.setText("");
+        OccupantCombo.setSelectedIndex(0);
+        HotelRoomCombo.setSelectedIndex(0);
     }
     class RoomAddAction implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
             conn = DBConnection.getConnection();
-            String sql = "insert into room(occupants,type,isbooked,rent,number)" + "values(?,?,?,?,?)";
+            String sql = "insert into room(occupants,type,isbooked,rent,occupant,hotel)" + "values(?,?,?,?,?,?)";
             try {
                 state = conn.prepareStatement(sql);
                 state.setString(1, occupantsT.getText());
                 state.setString(2, TypeCombo.getSelectedItem().toString());
                 state.setString(3, BookedCombo.getSelectedItem().toString());
                 state.setFloat(4, Float.parseFloat(rentT.getText()));
-                state.setInt(5,number);
+                state.setString(5, OccupantCombo.getSelectedItem().toString());
+                state.setString(6, HotelRoomCombo.getSelectedItem().toString());
                 state.execute();
                 RoomRefreshTable();
                 //refreshComboBooked();
+                refreshComboOccupant();
+                refreshComboHotelRoom();
                 RoomRefreshComboType();
                 RoomClearForm();
             } catch (SQLException ex) {
@@ -516,13 +621,15 @@ public class NewFrame extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             conn = DBConnection.getConnection();
-            String sql = "Update room set occupants=?,type=?,isbooked=?,rent=?" + "where number=?";
+            String sql = "Update room set occupants=?,type=?,isbooked=?,rent=?,occupant=?,hotel=?" + "where number=?";
             try {
                 state = conn.prepareStatement(sql);
                 state.setString(1, occupantsT.getText());
                 state.setString(2, TypeCombo.getSelectedItem().toString());
                 state.setString(3, BookedCombo.getSelectedItem().toString());
                 state.setFloat(4, Float.parseFloat(rentT.getText()));
+                state.setString(5, OccupantCombo.getSelectedItem().toString());
+                state.setString(6, HotelRoomCombo.getSelectedItem().toString());
                 state.execute();
                 RoomRefreshTable();
                 clearForm();
@@ -551,6 +658,8 @@ public class NewFrame extends JFrame {
                 BookedCombo.setSelectedIndex(1);
             }
             rentT.setText(rtable.getValueAt(row, 4).toString());
+            OccupantCombo.setSelectedItem(rtable.getValueAt(row,5).toString());
+            HotelRoomCombo.setSelectedItem(rtable.getValueAt(row,6).toString());
         }
 
         @Override
@@ -601,14 +710,16 @@ public class NewFrame extends JFrame {
 
 
             conn = DBConnection.getConnection();
-            String sql = "update room set occupants=?, type=?, isbooked=?, rent=?, where number=?";
+            String sql = "update room set occupants=?, type=?, isbooked=?, rent=?,occupant=?,hotel=?, where number=?";
             try {
                 state = conn.prepareStatement(sql);
                 state.setString(1, occupantsT.getText());
                 state.setString(2, TypeCombo.getSelectedItem().toString());
                 state.setString(3, BookedCombo.getSelectedItem().toString());
                 state.setFloat(4, Float.parseFloat(rentT.getText()));
-                state.setInt(5,number);
+                state.setString(5, OccupantCombo.getSelectedItem().toString());
+                state.setString(6, HotelRoomCombo.getSelectedItem().toString());
+                state.setInt(7,number);
                 state.execute();
                 RoomClearForm();
                 RoomRefreshTable();
@@ -667,6 +778,7 @@ public class NewFrame extends JFrame {
         }
     }
     public void HotelClearForm() {
+        hotelidT.setText("");
         addressT.setText("");
         StarsCombo.setSelectedIndex(0);
         floorsT.setText("");
@@ -676,13 +788,13 @@ public class NewFrame extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             conn = DBConnection.getConnection();
-            String sql = "Insert into hotel(address,stars,floors,id)" + "values(?,?,?,?)";
+            String sql = "Insert into hotel(id,address,stars,floors)" + "values(?,?,?,?)";
             try {
                 state = conn.prepareStatement(sql);
-                state.setString(1, addressT.getText());
-                state.setString(2, StarsCombo.getSelectedItem().toString());
-                state.setFloat(3, Float.parseFloat(floorsT.getText()));
-                state.setInt(4,hotelid);
+                state.setString(1, hotelidT.getText());
+                state.setString(2, addressT.getText());
+                state.setString(3, StarsCombo.getSelectedItem().toString());
+                state.setFloat(4, Float.parseFloat(floorsT.getText()));
                 state.execute();
                 HotelRefreshTable();
                 //refreshComboBooked();
@@ -698,12 +810,13 @@ public class NewFrame extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             conn = DBConnection.getConnection();
-            String sql = "Update hotel set address=?,stars=?,floors=?" + "where id=?";
+            String sql = "Update hotel set id=?,address=?,stars=?,floors=?";
             try {
                 state = conn.prepareStatement(sql);
-                state.setString(1, addressT.getText());
-                state.setString(2, StarsCombo.getSelectedItem().toString());
-                state.setFloat(3, Float.parseFloat(floorsT.getText()));
+                state.setString(1, hotelidT.getText());
+                state.setString(2, addressT.getText());
+                state.setString(3, StarsCombo.getSelectedItem().toString());
+                state.setFloat(4, Float.parseFloat(floorsT.getText()));
                 state.execute();
                 HotelRefreshTable();
                 HotelClearForm();
@@ -718,7 +831,7 @@ public class NewFrame extends JFrame {
         @Override
         public void mouseClicked(MouseEvent e) {
             int row = htable.getSelectedRow();
-            hotelid = Integer.parseInt(htable.getValueAt(row, 0).toString());
+            hotelidT.setText(htable.getValueAt(row, 0).toString());
             addressT.setText(htable.getValueAt(row, 1).toString());
             if (htable.getValueAt(row, 2).toString().equals("1")) {
                 StarsCombo.setSelectedIndex(0);
@@ -767,11 +880,10 @@ public class NewFrame extends JFrame {
             String sql = "delete from hotel where id=?";
             try {
                 state = conn.prepareStatement(sql);
-                state.setInt(1, hotelid);
+                state.setString(1, hotelidT.getText());
                 state.execute();
                 HotelRefreshTable();
                 HotelClearForm();
-                hotelid = -1;
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
@@ -785,13 +897,13 @@ public class NewFrame extends JFrame {
 
 
             conn = DBConnection.getConnection();
-            String sql = "update hotel set address=?, stars=?, floors=? where id=?";
+            String sql = "update hotel set id=?, address=?, stars=?, floors=?";
             try {
                 state = conn.prepareStatement(sql);
-                state.setString(1, addressT.getText());
-                state.setString(2, StarsCombo.getSelectedItem().toString());
-                state.setFloat(3, Float.parseFloat(floorsT.getText()));
-                state.setInt(4,hotelid);
+                state.setString(1, hotelidT.getText());
+                state.setString(2, addressT.getText());
+                state.setString(3, StarsCombo.getSelectedItem().toString());
+                state.setFloat(4, Float.parseFloat(floorsT.getText()));
                 state.execute();
                 HotelClearForm();
                 HotelRefreshTable();
@@ -808,7 +920,7 @@ public class NewFrame extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             conn = DBConnection.getConnection();
-            String sql = "select * from hotel where address like '%" + addressT.getText() + "%'";
+            String sql = "select * from hotel where id like '%" + hotelidT.getText() + "%'";
             try {
                 state = conn.prepareStatement(sql);
                 result = state.executeQuery();
@@ -825,26 +937,58 @@ public class NewFrame extends JFrame {
     public void ReserveRefreshTable() {
         conn = DBConnection.getConnection();
         try {
-            state = conn.prepareStatement("select * from hotel");
+            state = conn.prepareStatement("select * from reservation");
             result = state.executeQuery();
-            htable.setModel(new MyModel(result));
+            retable.setModel(new MyModel(result));
         } catch (SQLException e) {
             e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    public void ResRefreshComboStars(){
-        String sql="select address, stars, floors from hotel";
+    public void refreshHotelCombo() {
+        String sql="select id from hotel";
         conn=DBConnection.getConnection();
         String item="";
         try {
             state=conn.prepareStatement(sql);
             result=state.executeQuery();
-            HotelCombo.removeAllItems();
+            HotelResCombo.removeAllItems();
             while(result.next()){
-                item=result.getObject(1).toString()+"."+result.getObject(2).toString()+" "+result.getObject(3).toString();
-                HotelCombo.addItem(item);
+                item=result.getObject(1).toString();
+                HotelResCombo.addItem(item);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public void refreshNumberCombo() {
+        String sql="select number from room";
+        conn=DBConnection.getConnection();
+        String item="";
+        try {
+            state=conn.prepareStatement(sql);
+            result=state.executeQuery();
+            NumberResCombo.removeAllItems();
+            while(result.next()){
+                item=result.getObject(1).toString();
+                NumberResCombo.addItem(item);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public void refreshPersonCombo() {
+        String sql="select id from person";
+        conn=DBConnection.getConnection();
+        String item="";
+        try {
+            state=conn.prepareStatement(sql);
+            result=state.executeQuery();
+            PersonResCombo.removeAllItems();
+            while(result.next()){
+                item=result.getObject(1).toString();
+                PersonResCombo.addItem(item);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -854,24 +998,25 @@ public class NewFrame extends JFrame {
         addressT.setText("");
         StarsCombo.setSelectedIndex(0);
         floorsT.setText("");
+        HotelResCombo.setSelectedIndex(0);
+        NumberResCombo.setSelectedIndex(0);
+        PersonResCombo.setSelectedIndex(0);
     }
     class ResAddAction implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
             conn = DBConnection.getConnection();
-            String sql = "Insert into hotel(address,stars,floors,id)" + "values(?,?,?,?)";
+            String sql = "Insert into reservation(person,room,hotel)" + "values(?,?,?)";
             try {
                 state = conn.prepareStatement(sql);
-                state.setString(1, addressT.getText());
-                state.setString(2, StarsCombo.getSelectedItem().toString());
-                state.setFloat(3, Float.parseFloat(floorsT.getText()));
-                state.setInt(4,hotelid);
+                state.setString(1, PersonResCombo.getSelectedItem().toString());
+                state.setString(2, NumberResCombo.getSelectedItem().toString());
+                state.setString(3, HotelResCombo.getSelectedItem().toString());
                 state.execute();
-                HotelRefreshTable();
+                ReserveRefreshTable();
                 //refreshComboBooked();
-                HotelRefreshComboStars();
-                HotelClearForm();
+                ResClearForm();
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
@@ -882,15 +1027,15 @@ public class NewFrame extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             conn = DBConnection.getConnection();
-            String sql = "Update hotel set address=?,stars=?,floors=?" + "where id=?";
+            String sql = "Update reservation set person=?,room=?,hotel=?" + "where num=?";
             try {
                 state = conn.prepareStatement(sql);
-                state.setString(1, addressT.getText());
-                state.setString(2, StarsCombo.getSelectedItem().toString());
-                state.setFloat(3, Float.parseFloat(floorsT.getText()));
+                state.setString(1, PersonResCombo.getSelectedItem().toString());
+                state.setString(2, NumberResCombo.getSelectedItem().toString());
+                state.setString(3, HotelResCombo.getSelectedItem().toString());
                 state.execute();
-                HotelRefreshTable();
-                HotelClearForm();
+                ReserveRefreshTable();
+                ResClearForm();
             }
             catch (SQLException ex) {
                 ex.printStackTrace();
@@ -901,25 +1046,11 @@ public class NewFrame extends JFrame {
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            int row = htable.getSelectedRow();
-            hotelid = Integer.parseInt(htable.getValueAt(row, 0).toString());
-            addressT.setText(htable.getValueAt(row, 1).toString());
-            if (htable.getValueAt(row, 2).toString().equals("1")) {
-                StarsCombo.setSelectedIndex(0);
-            }
-            else if (htable.getValueAt(row, 2).toString().equals("2")) {
-                StarsCombo.setSelectedIndex(1);
-            }
-            else if (htable.getValueAt(row, 2).toString().equals("3")) {
-                StarsCombo.setSelectedIndex(2);
-            }
-            else if (htable.getValueAt(row, 2).toString().equals("4")) {
-                StarsCombo.setSelectedIndex(3);
-            }
-            else {
-                StarsCombo.setSelectedIndex(4);
-            }
-            floorsT.setText(htable.getValueAt(row, 3).toString());
+            int row = retable.getSelectedRow();
+            resnum = Integer.parseInt(retable.getValueAt(row, 0).toString());
+            PersonResCombo.setSelectedItem(retable.getValueAt(row,1).toString());
+            NumberResCombo.setSelectedItem(retable.getValueAt(row,2).toString());
+            HotelResCombo.setSelectedItem(retable.getValueAt(row,3).toString());
         }
 
         @Override
@@ -948,14 +1079,14 @@ public class NewFrame extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             conn = DBConnection.getConnection();
-            String sql = "delete from hotel where id=?";
+            String sql = "delete from reservation where num=?";
             try {
                 state = conn.prepareStatement(sql);
-                state.setInt(1, hotelid);
+                state.setInt(1, resnum);
                 state.execute();
-                HotelRefreshTable();
-                HotelClearForm();
-                hotelid = -1;
+                ReserveRefreshTable();
+                ResClearForm();
+                resnum = -1;
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
@@ -969,16 +1100,16 @@ public class NewFrame extends JFrame {
 
 
             conn = DBConnection.getConnection();
-            String sql = "update hotel set address=?, stars=?, floors=? where id=?";
+            String sql = "update reservation set person=?, room=?, hotel=? where num=?";
             try {
                 state = conn.prepareStatement(sql);
-                state.setString(1, addressT.getText());
-                state.setString(2, StarsCombo.getSelectedItem().toString());
-                state.setFloat(3, Float.parseFloat(floorsT.getText()));
-                state.setInt(4,hotelid);
+                state.setString(1, PersonResCombo.getSelectedItem().toString());
+                state.setString(2, NumberResCombo.getSelectedItem().toString());
+                state.setString(3, HotelResCombo.getSelectedItem().toString());
+                state.setInt(4, resnum);
                 state.execute();
-                HotelClearForm();
-                HotelRefreshTable();
+                ResClearForm();
+                ReserveRefreshTable();
                 //System.out();_
             }catch(SQLException s) {
                 s.printStackTrace();
@@ -992,11 +1123,11 @@ public class NewFrame extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             conn = DBConnection.getConnection();
-            String sql = "select * from hotel where address like '%" + addressT.getText() + "%'";
+            String sql = "select * from reservation where person like '%" + PersonResCombo.getSelectedItem() + "%'";
             try {
                 state = conn.prepareStatement(sql);
                 result = state.executeQuery();
-                htable.setModel(new MyModel(result));
+                retable.setModel(new MyModel(result));
             } catch (SQLException ex) {
                 ex.printStackTrace();
             } catch (Exception ex) {
@@ -1006,22 +1137,6 @@ public class NewFrame extends JFrame {
     }
 
     //res
-    public void refreshResCombo(){
-        String sql="select id, fname, lname from person";
-        conn=DBConnection.getConnection();
-        String item="";
-        try {
-            state=conn.prepareStatement(sql);
-            result=state.executeQuery();
-            personCombo.removeAllItems();
-            while(result.next()){
-                item=result.getObject(1).toString()+"."+result.getObject(2).toString()+" "+result.getObject(3).toString();
-                personCombo.addItem(item);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
     class RefreshAction implements ActionListener {
 
         @Override
